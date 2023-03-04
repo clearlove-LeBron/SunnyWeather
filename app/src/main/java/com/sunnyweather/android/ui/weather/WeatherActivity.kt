@@ -1,12 +1,17 @@
 package com.sunnyweather.android.ui.weather
 
 
+import android.content.Context
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.sunnyweather.android.R
@@ -23,6 +28,12 @@ import java.util.Locale
 class WeatherActivity : AppCompatActivity() {
 
     val viewModel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
+
+    private val nowBinding = NowBinding.inflate(layoutInflater)
+    private val forecastBinding = ForecastBinding.inflate(layoutInflater)
+    private val forecastItemBinding = ForecastItemBinding.inflate(layoutInflater)
+    private val lifeIndexBinding = LifeIndexBinding.inflate(layoutInflater)
+    val activityWeatherBinding = ActivityWeatherBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,16 +58,54 @@ class WeatherActivity : AppCompatActivity() {
                 Toast.makeText(this, "无法成功获取天气信息", Toast.LENGTH_SHORT).show()
                 it.exceptionOrNull()?.printStackTrace()
             }
+            activityWeatherBinding.swipeRefresh.isRefreshing = false
         })
+        activityWeatherBinding.swipeRefresh.setColorSchemeColors(
+            ContextCompat.getColor(applicationContext, R.color.colorPrimary))
+        refreshWeather()
+        activityWeatherBinding.swipeRefresh.setOnRefreshListener {
+            refreshWeather()
+        }
+        // 监听切换城市按钮的点击事件
+        nowBinding.navBtn.setOnClickListener {
+            // 打开滑动菜单
+            activityWeatherBinding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+        // 监听 DrawerLayout 的状态
+        activityWeatherBinding.drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener{
+            override fun onDrawerStateChanged(newState: Int) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onDrawerOpened(drawerView: View) {
+                TODO("Not yet implemented")
+            }
+
+            /**
+             * 当滑动菜单被隐藏的时候
+             * 输入法也要随之隐藏
+             */
+            override fun onDrawerClosed(drawerView: View) {
+                val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                manager.hideSoftInputFromWindow(drawerView.windowToken,
+                    InputMethodManager.HIDE_NOT_ALWAYS)
+            }
+        })
+    }
+
+    /**
+     * 刷新天气信息
+     */
+    fun refreshWeather() {
         viewModel.refreshWeather(viewModel.locationLng, viewModel.locationLat)
+        activityWeatherBinding.swipeRefresh.isRefreshing = true
     }
 
     private fun showWeatherInfo(weather: Weather) {
-        val nowBinding = NowBinding.inflate(layoutInflater)
-        val forecastBinding = ForecastBinding.inflate(layoutInflater)
-        val forecastItemBinding = ForecastItemBinding.inflate(layoutInflater)
-        val lifeIndexBinding = LifeIndexBinding.inflate(layoutInflater)
-        val weatherBinding = ActivityWeatherBinding.inflate(layoutInflater)
         nowBinding.placeName.text = viewModel.placeName
         val realtime = weather.realtime
         val daily = weather.daily
@@ -94,6 +143,6 @@ class WeatherActivity : AppCompatActivity() {
             ultravioletText.text = lifeIndex.ultraviolet[0].desc
             carWashingText.text = lifeIndex.carWashing[0].desc
         }
-        weatherBinding.weatherLayout.visibility = View.VISIBLE
+        activityWeatherBinding.weatherLayout.visibility = View.VISIBLE
     }
 }
