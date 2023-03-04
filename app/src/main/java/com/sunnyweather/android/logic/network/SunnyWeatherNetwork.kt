@@ -19,7 +19,7 @@ object SunnyWeatherNetwork {
 
     suspend fun getRealtimeWeather(lng: String, lat: String) = weatherService.getRealtimeWeather(lng, lat).await()
 
-    private suspend fun <T> Call<T>.await(): T{
+    private suspend fun <T> Call<T>.await(): T {
         return suspendCoroutine {
             enqueue(object : Callback<T> {
                 override fun onResponse(call: Call<T>, response: Response<T>) {

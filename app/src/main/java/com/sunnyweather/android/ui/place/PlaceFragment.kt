@@ -2,15 +2,20 @@ package com.sunnyweather.android.ui.place
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.sunnyweather.android.MainActivity
 import com.sunnyweather.android.R
 import com.sunnyweather.android.databinding.FragmentPlaceBinding
@@ -45,17 +50,19 @@ class PlaceFragment : Fragment() {
             return
         }
         val layoutManager = LinearLayoutManager(activity)
-        val binding = FragmentPlaceBinding.inflate(layoutInflater)
-        binding.recyclerView.layoutManager = layoutManager
+        val recyclerView: RecyclerView = requireView().findViewById(R.id.recyclerView)
+        val bgImageView: ImageView = requireView().findViewById(R.id.bgImageView)
+        val searchPlaceEdit: EditText = requireView().findViewById(R.id.searchPlaceEdit)
+        recyclerView.layoutManager = layoutManager
         adapter = PlaceAdapter(this, viewModel.placeList)
-        binding.recyclerView.adapter = adapter
-        binding.searchPlaceEdit.addTextChangedListener {
+        recyclerView.adapter = adapter
+        searchPlaceEdit.addTextChangedListener {
             val content = it.toString()
             if (content.isNotEmpty()) {
                 viewModel.searchPlaces(content)
             } else {
-                binding.recyclerView.visibility = View.GONE
-                binding.bgImageView.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+                bgImageView.visibility = View.VISIBLE
                 viewModel.placeList.clear()
                 adapter.notifyDataSetChanged()
             }
@@ -63,8 +70,8 @@ class PlaceFragment : Fragment() {
         viewModel.placeLiveData.observe(viewLifecycleOwner, Observer{
             val places = it.getOrNull()
             if (places != null) {
-                binding.recyclerView.visibility = View.VISIBLE
-                binding.bgImageView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+                bgImageView.visibility = View.GONE
                 viewModel.placeList.clear()
                 viewModel.placeList.addAll(places)
                 adapter.notifyDataSetChanged()
@@ -74,4 +81,6 @@ class PlaceFragment : Fragment() {
             }
         })
     }
+
+
 }
